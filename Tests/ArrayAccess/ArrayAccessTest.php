@@ -1,9 +1,9 @@
 <?php
 
-namespace Tests\MSchindler\ArrayAccess;
+namespace Tests\mschindler83\ArrayAccess;
 
-use Base\Own\ArrayAccess\ArrayAccess;
-use Base\Own\ArrayAccess\ArrayAccessFailed;
+use mschindler83\ArrayAccess\ArrayAccess;
+use mschindler83\ArrayAccess\ArrayAccessFailed;
 use PHPUnit\Framework\TestCase;
 
 class ArrayAccessTest extends TestCase
