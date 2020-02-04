@@ -1,6 +1,6 @@
 <?php
 
-namespace mschindler83\ArrayAccess;
+namespace Mschindler83\ArrayAccess;
 
 class ArrayAccess
 {

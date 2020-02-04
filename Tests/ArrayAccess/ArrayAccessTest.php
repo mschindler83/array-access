@@ -2,8 +2,8 @@
 
 namespace Tests\mschindler83\ArrayAccess;
 
-use mschindler83\ArrayAccess\ArrayAccess;
-use mschindler83\ArrayAccess\ArrayAccessFailed;
+use Mschindler83\ArrayAccess\ArrayAccess;
+use Mschindler83\ArrayAccess\ArrayAccessFailed;
 use PHPUnit\Framework\TestCase;
 
 class ArrayAccessTest extends TestCase

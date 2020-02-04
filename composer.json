@@ -2,18 +2,22 @@
   "name": "mschindler83/array-access",
   "description": "Easy array access",
   "homepage": "http://www.markus-schindler.de",
-  "version": "1.0.0",
   "license": "MIT",
-  "autoload": {
-    "psr-0": {
-      "mschindler83\\ArrayAccess": "ArrayAccess/",
-      "mschindler83\\Tests": "Tests/"
-    }
-  },
+
   "require": {
     "php": ">=7.2"
   },
   "require-dev": {
     "phpunit/phpunit": "^8.5"
+  },
+  "autoload": {
+    "psr-4": {
+      "Mschindler83\\ArrayAccess\\": "ArrayAccess/"
+    }
+  },
+  "autoload-dev": {
+    "psr-4": {
+      "Mschindler83\\Tests\\": "Tests/"
+    }
   }
 }
