@@ -35,11 +35,6 @@ class ArrayAccessFailed extends \RuntimeException
         );
     }
 
-    public static function mergeFailedPathExists(): self
-    {
-        return new self('path exists');
-    }
-
     public static function pathNotFound(): self
     {
         return new self('Path not found');

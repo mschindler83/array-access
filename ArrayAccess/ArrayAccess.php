@@ -2,6 +2,16 @@
 
 namespace Mschindler83\ArrayAccess;
 
+use BadMethodCallException;
+use Mschindler83\ArrayAccess\DotAnnotation\DotAnnotation;
+
+/**
+ * @method string string(...$path)
+ * @method int int(...$path)
+ * @method float float(...$path)
+ * @method bool bool(...$path)
+ * @method array array(...$path)
+ */
 class ArrayAccess
 {
     private $data;
@@ -15,16 +25,17 @@ class ArrayAccess
         return new self($value);
     }
 
-    public static function newFromDotAnnotation(string $dotAnnotation, $value): self
+    public static function newFromDotAnnotation(DotAnnotation ...$dotAnnotations): self
     {
-        $dotExploded = \explode('.', $dotAnnotation);
         $newArray = [];
-        $pointer = &$newArray;
-        foreach ($dotExploded as $key) {
-            $pointer[$key] = [];
-            $pointer = &$pointer[$key];
+
+        foreach ($dotAnnotations as $dotAnnotation) {
+            $pointer = &$newArray;
+            foreach ($dotAnnotation->path() as $key) {
+                $pointer = &$pointer[$key];
+            }
+            $pointer = $dotAnnotation->value();
         }
-        $pointer = $value;
 
         return new self($newArray);
     }
@@ -33,9 +44,6 @@ class ArrayAccess
     {
         $pointer = &$this->data;
         foreach ($path as $key) {
-            if (!isset($pointer[$key])) {
-                $pointer[$key] = [];
-            }
             $pointer = &$pointer[$key];
         }
         $pointer = $value;
@@ -52,61 +60,6 @@ class ArrayAccess
         } catch (ArrayAccessFailed $e) {
             return false;
         }
-    }
-
-    public function string(...$path): string
-    {
-        $value = $this->findInPath(...$path);
-
-        if (!is_string($value)) {
-            throw ArrayAccessFailed::invalidType($path, $value, 'string');
-        }
-
-        return $value;
-    }
-
-    public function integer(...$path): int
-    {
-        $value = $this->findInPath(...$path);
-
-        if (!is_int($value)) {
-            throw ArrayAccessFailed::invalidType($path, $value, 'integer');
-        }
-
-        return $value;
-    }
-
-    public function float(...$path): float
-    {
-        $value = $this->findInPath(...$path);
-
-        if (!is_float($value)) {
-            throw ArrayAccessFailed::invalidType($path, $value, 'float');
-        }
-
-        return $value;
-    }
-
-    public function bool(...$path): bool
-    {
-        $value = $this->findInPath(...$path);
-
-        if (!is_bool($value)) {
-            throw ArrayAccessFailed::invalidType($path, $value, 'boolean');
-        }
-
-        return $value;
-    }
-
-    public function array(...$path): array
-    {
-        $value = $this->findInPath(...$path);
-
-        if (!is_array($value)) {
-            throw ArrayAccessFailed::invalidType($path, $value, 'array');
-        }
-
-        return $value;
     }
 
     public function arrayAccess(...$path): self
@@ -143,9 +96,35 @@ class ArrayAccess
         return $dateTime;
     }
 
+    public function dateTime(string $format, ...$path): \DateTime
+    {
+        $value = $this->string(...$path);
+
+        $dateTime = \DateTime::createFromFormat($format, $value);
+        if ($dateTime === false) {
+            throw ArrayAccessFailed::invalidDateTimeType($path, $value, $format);
+        }
+
+        return $dateTime;
+    }
+
     public function data(): array
     {
         return $this->data;
+    }
+
+    public function __call($name, $arguments)
+    {
+        if (!in_array($name, ['int', 'string', 'float', 'bool', 'array'])) {
+            throw new BadMethodCallException(\sprintf('Method "%s" not found', $name));
+        }
+
+        $value = $this->findInPath(...$arguments);
+        if (!call_user_func('is_' . $name, $value)) {
+            throw ArrayAccessFailed::invalidType($arguments, $value, $name);
+        }
+
+        return $value;
     }
 
     private function findInPath(...$path)

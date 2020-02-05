@@ -2,8 +2,10 @@
 
 namespace Tests\mschindler83\ArrayAccess;
 
+use BadMethodCallException;
 use Mschindler83\ArrayAccess\ArrayAccess;
 use Mschindler83\ArrayAccess\ArrayAccessFailed;
+use Mschindler83\ArrayAccess\DotAnnotation\SimpleDotAnnotation;
 use PHPUnit\Framework\TestCase;
 
 class ArrayAccessTest extends TestCase
@@ -30,7 +32,7 @@ class ArrayAccessTest extends TestCase
      */
     public function it_can_be_created_from_dot_annotation(): void
     {
-        $access = ArrayAccess::newFromDotAnnotation('key1.key2.2.key3', 'the-value');
+        $access = ArrayAccess::newFromDotAnnotation(SimpleDotAnnotation::create('key1.key2.2.key3', 'the-value'));
 
         static::assertSame(
             [
@@ -38,6 +40,66 @@ class ArrayAccessTest extends TestCase
                  'key2' => [
                      2 => [
                          'key3' => 'the-value',
+                     ],
+                 ],
+             ],
+            ],
+            $access->data()
+        );
+    }
+
+    /**
+     * @test
+     */
+    public function it_can_be_created_from_dot_annotation_with_empty_keys(): void
+    {
+        $access = ArrayAccess::newFromDotAnnotation(SimpleDotAnnotation::create('key1...key2', 'the-value'));
+
+        static::assertSame(
+            [
+                'key1' => [
+                    0 => [
+                        0 => [
+                            'key2' => 'the-value'
+                        ],
+                    ],
+                ],
+            ],
+            $access->data()
+        );
+    }
+
+    /**
+     * @test
+     */
+    public function it_can_be_created_from_multiple_dot_annotation(): void
+    {
+        $access = ArrayAccess::newFromDotAnnotation(
+            SimpleDotAnnotation::create('key1.some', 'some-value'),
+            SimpleDotAnnotation::create('key1.key2.0.key3', 'the-value-1'),
+            SimpleDotAnnotation::create('key1.key2.1.key3', 'the-value-2'),
+            SimpleDotAnnotation::create('key1.key2.2.key3', 'the-value-3'),
+            SimpleDotAnnotation::create('key1.key2.3.key3', 'the-value-4'),
+            SimpleDotAnnotation::create('key1.key2.3.key4', 'the-value-5')
+        );
+
+        static::assertSame(
+            [
+             'key1' => [
+                 'some' => 'some-value',
+                 'key2' => [
+                     0 => [
+                         'key3' => 'the-value-1',
+                     ],
+                     1 => [
+                         'key3' => 'the-value-2',
+                     ],
+                     2 => [
+                         'key3' => 'the-value-3',
+                     ],
+                     3 => [
+                         'key3' => 'the-value-4',
+                         'key4' => 'the-value-5',
                      ],
                  ],
              ],
@@ -68,6 +130,52 @@ class ArrayAccessTest extends TestCase
                     'Bar' => [
                         'Baz' => 'Buz',
                         'New' => 'new-value',
+                    ],
+                ],
+            ],
+            $newAccess->data()
+        );
+    }
+
+    /**
+     * @test
+     */
+    public function it_can_write_at_path_with_complex_data(): void
+    {
+        $testArray = [
+            'Foo' => [
+                'Bar' => [
+                    'Baz' => 'Buz',
+                    'next-key' => 'next-value',
+                    'next-array' => [
+                        'some' => 'some-value',
+                        'other' => 'other-value'
+                    ],
+                ],
+            ],
+        ];
+
+        $access = ArrayAccess::create($testArray);
+        $newAccess = $access->writeAtPath(
+            [
+                'some' => 'some-value-2',
+                'other' => 'new-other',
+                'new' => 'new',
+            ],
+            'Foo', 'Bar', 'next-array'
+        );
+
+        static::assertSame(
+            [
+                'Foo' => [
+                    'Bar' => [
+                        'Baz' => 'Buz',
+                        'next-key' => 'next-value',
+                        'next-array' => [
+                            'some' => 'some-value-2',
+                            'other' => 'new-other',
+                            'new' => 'new',
+                        ],
                     ],
                 ],
             ],
@@ -156,7 +264,7 @@ class ArrayAccessTest extends TestCase
             ],
         ];
         $access = ArrayAccess::create($testArray);
-        $result = $access->integer('Foo', 'Bar', 'Baz');
+        $result = $access->int('Foo', 'Bar', 'Baz');
 
         static::assertSame(-999, $result);
     }
@@ -274,6 +382,45 @@ class ArrayAccessTest extends TestCase
         $access = ArrayAccess::create($testArray);
         $result = $access->dateTimeImmutable('Y-m-d H:i:s', 'Foo', 'Bar', 'Baz');
 
+        static::assertInstanceOf(\DateTimeImmutable::class, $result);
+        static::assertSame('2020-01-02 14:30:55', $result->format('Y-m-d H:i:s'));
+    }
+
+    /**
+     * @test
+     */
+    public function it_raises_an_exception_on_datetime_immutable_format_missmatch(): void
+    {
+        $this->expectException(ArrayAccessFailed::class);
+        $this->expectExceptionMessage('[Array path: Foo.Bar.Baz] Could not get datetime object at "Baz" with format "Y-m-d H:i:s" from value "2020-01-02T14:30:55"');
+
+        $testArray = [
+            'Foo' => [
+                'Bar' => [
+                    'Baz' => '2020-01-02T14:30:55',
+                ],
+            ],
+        ];
+        $access = ArrayAccess::create($testArray);
+        $access->dateTimeImmutable('Y-m-d H:i:s', 'Foo', 'Bar', 'Baz');
+    }
+
+    /**
+     * @test
+     */
+    public function it_works_with_datetime_parsing(): void
+    {
+        $testArray = [
+            'Foo' => [
+                'Bar' => [
+                    'Baz' => '2020-01-02 14:30:55',
+                ],
+            ],
+        ];
+        $access = ArrayAccess::create($testArray);
+        $result = $access->dateTime('Y-m-d H:i:s', 'Foo', 'Bar', 'Baz');
+
+        static::assertInstanceOf(\DateTime::class, $result);
         static::assertSame('2020-01-02 14:30:55', $result->format('Y-m-d H:i:s'));
     }
 
@@ -293,7 +440,7 @@ class ArrayAccessTest extends TestCase
             ],
         ];
         $access = ArrayAccess::create($testArray);
-        $access->dateTimeImmutable('Y-m-d H:i:s', 'Foo', 'Bar', 'Baz');
+        $access->dateTime('Y-m-d H:i:s', 'Foo', 'Bar', 'Baz');
     }
 
     /**
@@ -345,4 +492,16 @@ class ArrayAccessTest extends TestCase
         yield [1, 'Given parameter "integer" is not an array'];
         yield ['some', 'Given parameter "string" is not an array'];
     }
+
+    /**
+     * @test
+     */
+     public function it_raises_an_exception_on_invalid_method_call(): void
+     {
+         $this->expectException(BadMethodCallException::class);
+         $this->expectExceptionMessage('Method "double" not found');
+
+         $access = ArrayAccess::create([]);
+         $access->double();
+     }
 }
