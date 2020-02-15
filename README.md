@@ -8,6 +8,7 @@ Library to ease array access handling
 ## Features
 
  - Savely access typed values from a given array
+ - Optional JSON schema validation
  - Support for datetime parsing
  - Define your own validation callback when retrieving values
  - Create a new array in form of "dot annotations"
@@ -68,6 +69,37 @@ Array
         )
     )
 )
+```
+### Array access with JSON schema validation
+```
+$data = [
+    'key1' => 'value1',
+    'key2' => true,
+];
+
+$access = ArrayAccess::createWithJsonSchemaValidation($data, \file_get_contents('json-schema.json'));
+
+```
+
+JSON schema: <json-schema.json>
+```
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "type": "object",
+  "properties": {
+    "key1": {
+      "type": "string",
+      "minLength": 3,
+      "maxLength": 64,
+      "pattern": "^[a-zA-Z0-9\\-]+(\\s[a-zA-Z0-9\\-]+)*$"
+    },
+    "key2": {
+      "type": "boolean"
+    }
+  },
+  "required": ["key1", "key2"],
+  "additionalProperties": false
+}
 ```
 
 ### Access values

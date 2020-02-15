@@ -3,6 +3,8 @@ declare(strict_types=1);
 
 namespace Mschindler83\ArrayAccess;
 
+use Opis\JsonSchema\ValidationError;
+
 class ArrayAccessFailed extends \RuntimeException
 {
     public static function notAnArray($value): self
@@ -50,5 +52,23 @@ class ArrayAccessFailed extends \RuntimeException
     public static function pathNotFound(): self
     {
         return new self('Path not found');
+    }
+
+    public static function jsonSchemaValidationFailed(ValidationError ...$errors): self
+    {
+        $messages = \array_map(
+            function (ValidationError $error) {
+                return \sprintf(
+                    'Error: [%s], Data pointer: [%s]',
+                    $error->keyword(),
+                    \implode(', ', $error->dataPointer()),
+                );
+            },
+            $errors
+        );
+
+        return new self(
+            \sprintf('Json schema validation failed: %s', \implode(', ', $messages))
+        );
     }
 }

@@ -31,6 +31,38 @@ class ArrayAccessTest extends TestCase
     /**
      * @test
      */
+    public function it_validates_with_json_schema_validator(): void
+    {
+        $data = [
+            'key1' => 'value1',
+            'key2' => true,
+        ];
+
+        $access = ArrayAccess::createWithJsonSchemaValidation($data, \file_get_contents(__DIR__ . '/../Fixture/json-schema.json'));
+        static::assertSame('value1', $access->string('key1'));
+        static::assertTrue($access->bool('key2'));
+    }
+
+    /**
+     * @test
+     */
+    public function it_raises_an_exception_on_failed_json_schema_validation(): void
+    {
+        $this->expectException(ArrayAccessFailed::class);
+        $this->expectExceptionMessage('Json schema validation failed: Error: [minLength], Data pointer: [key1], Error: [type], Data pointer: [key2], Error: [additionalProperties], Data pointer: []');
+
+        $data = [
+            'key1' => 'v',
+            'key2' => '1',
+            'key3' => 'some-other-value',
+        ];
+
+        ArrayAccess::createWithJsonSchemaValidation($data, \file_get_contents(__DIR__ . '/../Fixture/json-schema.json'));
+    }
+
+    /**
+     * @test
+     */
     public function it_can_be_created_from_dot_annotation(): void
     {
         $access = ArrayAccess::newFromDotAnnotation(SimpleDotAnnotation::create('key1.key2.2.key3', 'the-value'));

@@ -5,6 +5,8 @@ namespace Mschindler83\ArrayAccess;
 
 use BadMethodCallException;
 use Mschindler83\ArrayAccess\DotAnnotation\DotAnnotation;
+use Opis\JsonSchema\Schema;
+use Opis\JsonSchema\Validator;
 
 /**
  * @method string string(...$path)
@@ -26,6 +28,21 @@ class ArrayAccess
     {
         if (!is_array($value)) {
             throw ArrayAccessFailed::notAnArray($value);
+        }
+
+        return new self($value);
+    }
+
+    public static function createWithJsonSchemaValidation($value, string $jsonSchemaDefinition): self
+    {
+        if (!is_array($value)) {
+            throw ArrayAccessFailed::notAnArray($value);
+        }
+        $schema = Schema::fromJsonString($jsonSchemaDefinition);
+        $result = (new Validator())->schemaValidation(\json_decode(\json_encode($value)), $schema, 10);
+
+        if (!$result->isValid()) {
+            throw ArrayAccessFailed::jsonSchemaValidationFailed(...$result->getErrors());
         }
 
         return new self($value);
