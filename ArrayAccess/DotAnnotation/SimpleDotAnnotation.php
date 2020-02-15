@@ -29,7 +29,7 @@ class SimpleDotAnnotation implements DotAnnotation
 
     private function normalizePathCallback()
     {
-        return function (string $pathElement) {
+        return function(string $pathElement) {
             if (trim((string) $pathElement) === '') {
                 return 0;
             }

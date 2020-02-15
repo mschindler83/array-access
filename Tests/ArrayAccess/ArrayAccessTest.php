@@ -17,12 +17,12 @@ class ArrayAccessTest extends TestCase
     public function it_returns_array_data(): void
     {
         $testArray = [
-             'Foo' => [
-                 'Bar' => [
-                     'Baz' => 'Buz',
-                 ],
-             ],
-         ];
+                'Foo' => [
+                    'Bar' => [
+                        'Baz' => 'Buz',
+                    ],
+                ],
+            ];
         $access = ArrayAccess::create($testArray);
 
         static::assertSame($testArray, $access->data());
@@ -69,13 +69,13 @@ class ArrayAccessTest extends TestCase
 
         static::assertSame(
             [
-             'key1' => [
-                 'key2' => [
-                     2 => [
-                         'key3' => 'the-value',
-                     ],
-                 ],
-             ],
+                'key1' => [
+                    'key2' => [
+                        2 => [
+                            'key3' => 'the-value',
+                        ],
+                    ],
+                ],
             ],
             $access->data()
         );
@@ -118,24 +118,24 @@ class ArrayAccessTest extends TestCase
 
         static::assertSame(
             [
-             'key1' => [
-                 'some' => 'some-value',
-                 'key2' => [
-                     0 => [
-                         'key3' => 'the-value-1',
-                     ],
-                     1 => [
-                         'key3' => 'the-value-2',
-                     ],
-                     2 => [
-                         'key3' => 'the-value-3',
-                     ],
-                     3 => [
-                         'key3' => 'the-value-4',
-                         'key4' => 'the-value-5',
-                     ],
-                 ],
-             ],
+                'key1' => [
+                    'some' => 'some-value',
+                    'key2' => [
+                        0 => [
+                            'key3' => 'the-value-1',
+                        ],
+                        1 => [
+                            'key3' => 'the-value-2',
+                        ],
+                        2 => [
+                            'key3' => 'the-value-3',
+                        ],
+                        3 => [
+                            'key3' => 'the-value-4',
+                            'key4' => 'the-value-5',
+                        ],
+                    ],
+                ],
             ],
             $access->data()
         );
@@ -250,12 +250,12 @@ class ArrayAccessTest extends TestCase
     public function it_can_return_if_a_path_exists(): void
     {
         $testArray = [
-             'Foo' => [
-                 'Bar' => [
-                     'Baz' => 'Buz',
-                 ],
-             ],
-         ];
+                'Foo' => [
+                    'Bar' => [
+                        'Baz' => 'Buz',
+                    ],
+                ],
+            ];
 
         $access = ArrayAccess::create($testArray);
 
@@ -266,9 +266,9 @@ class ArrayAccessTest extends TestCase
         static::assertFalse($access->hasPath('BuzBuz'));
     }
 
-   /**
-    * @test
-    */
+    /**
+     * @test
+     */
     public function it_raises_an_exception_on_not_existing_path(): void
     {
         $this->expectException(ArrayAccessFailed::class);
@@ -278,9 +278,9 @@ class ArrayAccessTest extends TestCase
         $access->int('foo', 'bar', 'baz');
     }
 
-   /**
-    * @test
-    */
+    /**
+     * @test
+     */
     public function it_raises_an_exception_on_unknown_method_call(): void
     {
         $this->expectException(BadMethodCallException::class);
@@ -325,9 +325,9 @@ class ArrayAccessTest extends TestCase
         static::assertNull($result);
     }
 
-   /**
-    * @test
-    */
+    /**
+     * @test
+     */
     public function it_raises_an_exception_on_value_other_than_null_when_requesting_nullable(): void
     {
         $this->expectException(ArrayAccessFailed::class);
@@ -460,9 +460,9 @@ class ArrayAccessTest extends TestCase
         static::assertSame($date, $result);
     }
 
-   /**
-    * @test
-    */
+    /**
+     * @test
+     */
     public function it_works_with_custom_callback(): void
     {
         $testArray1 = [
@@ -494,8 +494,8 @@ class ArrayAccessTest extends TestCase
     }
 
     /**
-    * @test
-    */
+     * @test
+     */
     public function it_raises_an_exception_on_callback_restriction(): void
     {
         $this->expectException(ArrayAccessFailed::class);
@@ -509,15 +509,15 @@ class ArrayAccessTest extends TestCase
             ],
         ];
         $customCallback = function ($value) {
-          return is_string($value) && in_array($value, ['Allowed value 1', 'Allowed value 2']);
+            return is_string($value) && in_array($value, ['Allowed value 1', 'Allowed value 2']);
         };
         $access = ArrayAccess::create($testArray);
         $access->callback($customCallback, 'Foo', 'Bar', 'Baz');
     }
 
-   /**
-    * @test
-    */
+    /**
+     * @test
+     */
     public function it_raises_an_exception_on_object_type_missmatch(): void
     {
         $this->expectException(ArrayAccessFailed::class);
@@ -661,9 +661,9 @@ class ArrayAccessTest extends TestCase
         yield ['some', 'Given parameter "string" is not an array'];
     }
 
-   /**
-    * @test
-    */
+    /**
+     * @test
+     */
     public function it_raises_an_exception_on_invalid_method_call(): void
     {
         $this->expectException(BadMethodCallException::class);
