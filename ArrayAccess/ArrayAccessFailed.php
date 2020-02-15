@@ -57,7 +57,7 @@ class ArrayAccessFailed extends \RuntimeException
     public static function jsonSchemaValidationFailed(ValidationError ...$errors): self
     {
         $messages = \array_map(
-            function (ValidationError $error) {
+            function(ValidationError $error) {
                 return \sprintf(
                     'Error: [%s], Data pointer: [%s]',
                     $error->keyword(),
