@@ -1,13 +1,11 @@
 <?php
+declare(strict_types=1);
 
 namespace Mschindler83\ArrayAccess\DotAnnotation;
 
 class SimpleDotAnnotation implements DotAnnotation
 {
-    /**
-     * @var array
-     */
-    private $path;
+    private array $path = [];
 
     /**
      * @var mixed
@@ -25,11 +23,6 @@ class SimpleDotAnnotation implements DotAnnotation
     }
 
     public function value()
-    {
-        return $this->value;
-    }
-
-    public function __toString(): string
     {
         return $this->value;
     }

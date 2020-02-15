@@ -1,4 +1,5 @@
 <?php
+declare(strict_types=1);
 
 namespace Mschindler83\ArrayAccess;
 
@@ -16,7 +17,7 @@ class ArrayAccessFailed extends \RuntimeException
                 '[Array path: %s] Could not get value for "%s". Invalid type "%s". Expected type: "%s"',
                 \implode('.', $arrayPath),
                 end($arrayPath),
-                gettype($value),
+                is_object($value) ? get_class($value) : gettype($value),
                 $expectedType
             )
         );
@@ -31,6 +32,17 @@ class ArrayAccessFailed extends \RuntimeException
                 end($arrayPath),
                 $dateFormat,
                 $value
+            )
+        );
+    }
+
+    public static function failedByCallbackRestriction(array $arrayPath): self
+    {
+        return new self(
+            \sprintf(
+                '[Array path: %s] Could not get value for "%s". Reason: Callback restriction',
+                \implode('.', $arrayPath),
+                end($arrayPath),
             )
         );
     }

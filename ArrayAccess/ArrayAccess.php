@@ -1,4 +1,5 @@
 <?php
+declare(strict_types=1);
 
 namespace Mschindler83\ArrayAccess;
 
@@ -7,14 +8,19 @@ use Mschindler83\ArrayAccess\DotAnnotation\DotAnnotation;
 
 /**
  * @method string string(...$path)
+ * @method string|null stringOrNull(...$path)
  * @method int int(...$path)
+ * @method int|null intOrNull(...$path)
  * @method float float(...$path)
+ * @method float|null floatOrNull(...$path)
  * @method bool bool(...$path)
+ * @method bool|null boolOrNull(...$path)
  * @method array array(...$path)
+ * @method array|null arrayOrNull(...$path)
  */
 class ArrayAccess
 {
-    private $data;
+    private array $data;
 
     public static function create($value): self
     {
@@ -64,20 +70,14 @@ class ArrayAccess
 
     public function arrayAccess(...$path): self
     {
-        $value = $this->findInPath(...$path);
-
-        if (!is_array($value)) {
-            throw ArrayAccessFailed::invalidType($path, $value, 'array');
-        }
-
-        return self::create($value);
+        return self::create($this->array(...$path));
     }
 
     public function objectOfType(string $objectType, ...$path): object
     {
         $value = $this->findInPath(...$path);
 
-        if (!($value instanceof $objectType)) {
+        if (get_class($value) !== $objectType) {
             throw ArrayAccessFailed::invalidType($path, $value, $objectType);
         }
 
@@ -108,6 +108,16 @@ class ArrayAccess
         return $dateTime;
     }
 
+    public function callback(callable $callback, ...$path)
+    {
+        $value = $this->findInPath(...$path);
+        if (!$callback($value)) {
+            throw ArrayAccessFailed::failedByCallbackRestriction($path);
+        }
+
+        return $value;
+    }
+
     public function data(): array
     {
         return $this->data;
@@ -115,12 +125,24 @@ class ArrayAccess
 
     public function __call($name, $arguments)
     {
-        if (!in_array($name, ['int', 'string', 'float', 'bool', 'array'])) {
+        $validMethods = [
+            'int', 'intOrNull',
+            'string', 'stringOrNull',
+            'float', 'floatOrNull',
+            'bool', 'boolOrNull',
+            'array', 'arrayOrNull'
+        ];
+        if (!in_array($name, $validMethods)) {
             throw new BadMethodCallException(\sprintf('Method "%s" not found', $name));
         }
 
         $value = $this->findInPath(...$arguments);
-        if (!call_user_func('is_' . $name, $value)) {
+        if (substr($name, -6) === 'OrNull' && $value === null) {
+            return null;
+        }
+
+        $validationFunction = 'is_' . str_replace('OrNull', '', $name);
+        if (!call_user_func($validationFunction, $value)) {
             throw ArrayAccessFailed::invalidType($arguments, $value, $name);
         }
 
@@ -130,18 +152,11 @@ class ArrayAccess
     private function findInPath(...$path)
     {
         $temp = &$this->data;
-        $pathCount = \count($path);
-
-        $pos = 0;
         foreach ($path as $key) {
-            if (!isset($temp[$key])) {
+            if (!is_array($temp) || !array_key_exists($key, $temp)) {
                 throw ArrayAccessFailed::pathNotFound();
             }
             $temp = &$temp[$key];
-            if ($temp === null && $pos !== $pathCount - 1) {
-                throw ArrayAccessFailed::pathNotFound();
-            }
-            ++$pos;
         }
 
         return $temp;

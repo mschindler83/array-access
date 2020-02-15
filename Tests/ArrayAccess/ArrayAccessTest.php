@@ -1,4 +1,5 @@
 <?php
+declare(strict_types=1);
 
 namespace Tests\mschindler83\ArrayAccess;
 
@@ -233,6 +234,29 @@ class ArrayAccessTest extends TestCase
         static::assertFalse($access->hasPath('BuzBuz'));
     }
 
+   /**
+    * @test
+    */
+    public function it_raises_an_exception_on_not_existing_path(): void
+    {
+        $this->expectException(ArrayAccessFailed::class);
+        $this->expectExceptionMessage('Path not found');
+
+        $access = ArrayAccess::create(['foo' => ['bar' => null]]);
+        $access->int('foo', 'bar', 'baz');
+    }
+
+   /**
+    * @test
+    */
+    public function it_raises_an_exception_on_unknown_method_call(): void
+    {
+        $this->expectException(BadMethodCallException::class);
+        $this->expectExceptionMessage('Method "unknownMethod" not found');
+
+        ArrayAccess::create([])->unknownMethod();
+    }
+
     /**
      * @test
      */
@@ -249,6 +273,43 @@ class ArrayAccessTest extends TestCase
         $result = $access->string('Foo', 'Bar', 'Baz');
 
         static::assertSame('Buz', $result);
+    }
+
+    /**
+     * @test
+     */
+    public function it_works_with_nullable_strings(): void
+    {
+        $testArray = [
+            'Foo' => [
+                'Bar' => [
+                    'Baz' => null,
+                ],
+            ],
+        ];
+        $access = ArrayAccess::create($testArray);
+        $result = $access->stringOrNull('Foo', 'Bar', 'Baz');
+
+        static::assertNull($result);
+    }
+
+   /**
+    * @test
+    */
+    public function it_raises_an_exception_on_value_other_than_null_when_requesting_nullable(): void
+    {
+        $this->expectException(ArrayAccessFailed::class);
+        $this->expectExceptionMessage('[Array path: Foo.Bar.Baz] Could not get value for "Baz". Invalid type "integer". Expected type: "stringOrNull"');
+
+        $testArray = [
+            'Foo' => [
+                'Bar' => [
+                    'Baz' => 1,
+                ],
+            ],
+        ];
+        $access = ArrayAccess::create($testArray);
+        $access->stringOrNull('Foo', 'Bar', 'Baz');
     }
 
     /**
@@ -365,6 +426,81 @@ class ArrayAccessTest extends TestCase
         $result = $access->objectOfType(\DateTimeImmutable::class, 'Foo', 'Bar', 'Baz');
 
         static::assertSame($date, $result);
+    }
+
+   /**
+    * @test
+    */
+    public function it_works_with_custom_callback(): void
+    {
+        $testArray1 = [
+            'Foo' => [
+                'Bar' => [
+                    'Baz' => 'Buz',
+                ],
+            ],
+        ];
+        $testArray2 = [
+            'Foo' => [
+                'Bar' => [
+                    'Baz' => 99,
+                ],
+            ],
+        ];
+        $customCallback = function ($value) {
+            return is_string($value) || is_int($value);
+        };
+
+        $access1 = ArrayAccess::create($testArray1);
+        $result1 = $access1->callback($customCallback, 'Foo', 'Bar', 'Baz');
+
+        $access2 = ArrayAccess::create($testArray2);
+        $result2 = $access2->callback($customCallback, 'Foo', 'Bar', 'Baz');
+
+        static::assertSame('Buz', $result1);
+        static::assertSame(99, $result2);
+    }
+
+    /**
+    * @test
+    */
+    public function it_raises_an_exception_on_callback_restriction(): void
+    {
+        $this->expectException(ArrayAccessFailed::class);
+        $this->expectExceptionMessage('[Array path: Foo.Bar.Baz] Could not get value for "Baz". Reason: Callback restriction');
+
+        $testArray = [
+            'Foo' => [
+                    'Bar' => [
+                    'Baz' => 'Buz',
+                ],
+            ],
+        ];
+        $customCallback = function ($value) {
+          return is_string($value) && in_array($value, ['Allowed value 1', 'Allowed value 2']);
+        };
+        $access = ArrayAccess::create($testArray);
+        $access->callback($customCallback, 'Foo', 'Bar', 'Baz');
+    }
+
+   /**
+    * @test
+    */
+    public function it_raises_an_exception_on_object_type_missmatch(): void
+    {
+        $this->expectException(ArrayAccessFailed::class);
+        $this->expectExceptionMessage('[Array path: Foo.Bar.Baz] Could not get value for "Baz". Invalid type "DateTimeImmutable". Expected type: "DateTime"');
+
+        $date = new \DateTimeImmutable();
+        $testArray = [
+            'Foo' => [
+                'Bar' => [
+                    'Baz' => $date,
+                ],
+            ],
+        ];
+        $access = ArrayAccess::create($testArray);
+        $access->objectOfType(\DateTime::class, 'Foo', 'Bar', 'Baz');
     }
 
     /**
@@ -493,15 +629,15 @@ class ArrayAccessTest extends TestCase
         yield ['some', 'Given parameter "string" is not an array'];
     }
 
-    /**
-     * @test
-     */
-     public function it_raises_an_exception_on_invalid_method_call(): void
-     {
-         $this->expectException(BadMethodCallException::class);
-         $this->expectExceptionMessage('Method "double" not found');
+   /**
+    * @test
+    */
+    public function it_raises_an_exception_on_invalid_method_call(): void
+    {
+        $this->expectException(BadMethodCallException::class);
+        $this->expectExceptionMessage('Method "double" not found');
 
-         $access = ArrayAccess::create([]);
-         $access->double();
-     }
+        $access = ArrayAccess::create([]);
+        $access->double();
+    }
 }
