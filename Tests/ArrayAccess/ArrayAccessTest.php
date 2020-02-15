@@ -479,7 +479,7 @@ class ArrayAccessTest extends TestCase
                 ],
             ],
         ];
-        $customCallback = function ($value) {
+        $customCallback = function($value) {
             return is_string($value) || is_int($value);
         };
 
@@ -508,7 +508,7 @@ class ArrayAccessTest extends TestCase
                 ],
             ],
         ];
-        $customCallback = function ($value) {
+        $customCallback = function($value) {
             return is_string($value) && in_array($value, ['Allowed value 1', 'Allowed value 2']);
         };
         $access = ArrayAccess::create($testArray);
