@@ -23,4 +23,4 @@ install:
 
 ## Run test Scripts
 script:
-  - vendor/bin/phpunit
+  - vendor/bin/phpunit Tests/
