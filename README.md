@@ -7,7 +7,8 @@
 [![Monthly Downloads](https://img.shields.io/packagist/dm/mschindler83/array-access.svg)](https://packagist.org/packages/mschindler83/array-access)
 
 
-Library to ease array access handling
+Library to ease array access handling.
+Requires PHP >= 7.4
 
 ## Install
 `composer require mschindler83/array-access`
