@@ -13,25 +13,12 @@ class ArrayAccessValidationFailed extends \RuntimeException
 
     public static function withValidationErrors(ValidationError ...$errors): self
     {
-        $messages = \array_map(
-            function(ValidationError $error) {
-                return \sprintf(
-                    'Error: [%s], Data pointer: [%s]',
-                    $error->keyword(),
-                    \implode(', ', $error->dataPointer()),
-                );
-            },
-            $errors
-        );
-
-        $instance = new self(
-            \sprintf('Json schema validation failed: %s', \implode(', ', $messages))
-        );
-
+        $instance = new self('Json schema validation failed');
         $instance->errors = $errors;
         $instance->errorMapping = ArrayAccess::create([]);
+
         foreach ($errors as $error) {
-            $instance->errorMapping = $instance->errorMapping->writeAtPath((string) $error->keyword(), ...$error->dataPointer());
+            $instance->errorMapping = $instance->errorMapping->writeAtPath([$error->keyword() => $error->keywordArgs()], ...$error->dataPointer());
         }
 
         return $instance;

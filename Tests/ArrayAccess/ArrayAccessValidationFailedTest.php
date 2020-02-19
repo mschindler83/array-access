@@ -4,7 +4,8 @@ declare(strict_types=1);
 namespace Mschindler83\Tests\ArrayAccess;
 
 use Mschindler83\ArrayAccess\ArrayAccessValidationFailed;
-use Opis\JsonSchema\ValidationError;
+use Opis\JsonSchema\Schema;
+use Opis\JsonSchema\Validator;
 use PHPUnit\Framework\TestCase;
 
 class ArrayAccessValidationFailedTest extends TestCase
@@ -14,18 +15,24 @@ class ArrayAccessValidationFailedTest extends TestCase
      */
     public function it_can_return_errors(): void
     {
-        $error1 = new ValidationError(null, ['e1dp1', 'e1dp2'], [], false, 'kw1');
-        $error2 = new ValidationError(null, ['e2dp1', 'e2dp2'], [], false, 'kw2');
+        $schema = Schema::fromJsonString(\file_get_contents(__DIR__ . '/../Fixture/json-schema.json'));
+        $result = (new Validator())->schemaValidation(\json_decode(\json_encode(['key1' => 'a'])), $schema, 10);
+        $errors = $result->getErrors();
+        $exception = ArrayAccessValidationFailed::withValidationErrors(...$errors);
 
-        $exception = ArrayAccessValidationFailed::withValidationErrors($error1, $error2);
-
+        static::assertSame('Json schema validation failed', $exception->getMessage());
         static::assertSame(
             [
-                'e1dp1' => [
-                    'e1dp2' => 'kw1'
+                [
+                    'required' => [
+                        'missing' => 'key2'
+                    ],
                 ],
-                'e2dp1' => [
-                    'e2dp2' => 'kw2'
+                'key1' => [
+                    'minLength' => [
+                        'min' => 3,
+                        'length' => 1,
+                    ],
                 ],
             ],
             $exception->errorMapping()->data()

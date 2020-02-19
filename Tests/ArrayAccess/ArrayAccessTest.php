@@ -50,7 +50,7 @@ class ArrayAccessTest extends TestCase
     public function it_raises_an_exception_on_failed_json_schema_validation(): void
     {
         $this->expectException(ArrayAccessValidationFailed::class);
-        $this->expectExceptionMessage('Json schema validation failed: Error: [minLength], Data pointer: [key1], Error: [type], Data pointer: [key2], Error: [additionalProperties], Data pointer: []');
+        $this->expectExceptionMessage('Json schema validation failed');
 
         $data = [
             'key1' => 'v',
@@ -193,6 +193,38 @@ class ArrayAccessTest extends TestCase
         $access = $access->writeAtPath([], '0');
 
         static::assertSame([], $access->array(0));
+    }
+
+    /**
+     * @test
+     */
+    public function it_can_write_array_at_path(): void
+    {
+        $access = ArrayAccess::create([]);
+        $arrayToWrite = ['foo' => ['bar' => 'baz']];
+        $access = $access->writeAtPath($arrayToWrite);
+
+        static::assertSame(
+            [
+                [
+                    'foo' => [
+                        'bar' => 'baz'
+                    ],
+                ]
+            ],
+            $access->data()
+        );
+    }
+
+    /**
+     * @test
+     */
+    public function it_can_write_empty_array_path(): void
+    {
+        $access = ArrayAccess::create([]);
+        $access = $access->writeAtPath('foo', ...[]);
+
+        static::assertSame(['foo'], $access->data());
     }
 
     /**
