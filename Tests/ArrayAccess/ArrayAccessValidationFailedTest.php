@@ -12,23 +12,23 @@ class ArrayAccessValidationFailedTest extends TestCase
     /**
      * @test
      */
-     public function it_can_return_errors(): void
-     {
-         $error1 = new ValidationError(null, ['e1dp1', 'e1dp2'], [], false, 'kw1');
-         $error2 = new ValidationError(null, ['e2dp1', 'e2dp2'], [], false, 'kw2');
+    public function it_can_return_errors(): void
+    {
+        $error1 = new ValidationError(null, ['e1dp1', 'e1dp2'], [], false, 'kw1');
+        $error2 = new ValidationError(null, ['e2dp1', 'e2dp2'], [], false, 'kw2');
 
-         $exception = ArrayAccessValidationFailed::withValidationErrors($error1, $error2);
+        $exception = ArrayAccessValidationFailed::withValidationErrors($error1, $error2);
 
-         static::assertSame(
-             [
-                 'e1dp1' => [
-                     'e1dp2' => 'kw1'
-                 ],
-                 'e2dp1' => [
-                     'e2dp2' => 'kw2'
-                 ],
-             ],
-             $exception->errorMapping()->data()
+        static::assertSame(
+            [
+                'e1dp1' => [
+                    'e1dp2' => 'kw1'
+                ],
+                'e2dp1' => [
+                    'e2dp2' => 'kw2'
+                ],
+            ],
+            $exception->errorMapping()->data()
          );
-     }
+    }
 }

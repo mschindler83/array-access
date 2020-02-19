@@ -176,24 +176,24 @@ class ArrayAccessTest extends TestCase
     /**
      * @test
      */
-     public function it_can_write_value_at_single_path(): void
-     {
-         $access = ArrayAccess::create([]);
-         $newAccess = $access->writeAtPath('new-value', 'Foo');
+    public function it_can_write_value_at_single_path(): void
+    {
+        $access = ArrayAccess::create([]);
+        $newAccess = $access->writeAtPath('new-value', 'Foo');
 
-         static::assertSame('new-value', $newAccess->string('Foo'));
-     }
+        static::assertSame('new-value', $newAccess->string('Foo'));
+    }
 
-     /**
-      * @test
-      */
-      public function it_can_write_empty_array(): void
-      {
-          $access = ArrayAccess::create([]);
-          $access = $access->writeAtPath([], '0');
+    /**
+     * @test
+     */
+    public function it_can_write_empty_array(): void
+    {
+        $access = ArrayAccess::create([]);
+        $access = $access->writeAtPath([], '0');
 
-          static::assertSame([], $access->array(0));
-      }
+        static::assertSame([], $access->array(0));
+    }
 
     /**
      * @test
