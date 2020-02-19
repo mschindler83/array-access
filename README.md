@@ -110,6 +110,9 @@ JSON schema: <json-schema.json>
 }
 ```
 
+If validation fails, an `ArrayAccessValidationFailed` exception will be thrown.
+You can get an `ArrayAccess` object of validation errors by calling the method `errorMapping()` on the exception.
+
 ### Access values
 ```
 $array = [

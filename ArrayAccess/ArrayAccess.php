@@ -42,7 +42,7 @@ class ArrayAccess
         $result = (new Validator())->schemaValidation(\json_decode(\json_encode($value)), $schema, 10);
 
         if (!$result->isValid()) {
-            throw ArrayAccessFailed::jsonSchemaValidationFailed(...$result->getErrors());
+            throw ArrayAccessValidationFailed::withValidationErrors(...$result->getErrors());
         }
 
         return new self($value);
@@ -63,15 +63,19 @@ class ArrayAccess
         return new self($newArray);
     }
 
-    public function writeAtPath($value, ...$path): self
+    public function writeAtPath($value, string ...$path): self
     {
-        $pointer = &$this->data;
+        $instance = new self($this->data);
+
+        $path = empty($path) ? [0] : $path;
+
+        $pointer = &$instance->data;
         foreach ($path as $key) {
             $pointer = &$pointer[$key];
         }
         $pointer = $value;
 
-        return new self($this->data);
+        return $instance;
     }
 
     public function hasPath(...$path): bool
