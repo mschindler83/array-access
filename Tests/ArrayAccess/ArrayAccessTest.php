@@ -6,6 +6,7 @@ namespace Tests\mschindler83\ArrayAccess;
 use BadMethodCallException;
 use Mschindler83\ArrayAccess\ArrayAccess;
 use Mschindler83\ArrayAccess\ArrayAccessFailed;
+use Mschindler83\ArrayAccess\ArrayAccessValidationFailed;
 use Mschindler83\ArrayAccess\DotAnnotation\SimpleDotAnnotation;
 use PHPUnit\Framework\TestCase;
 
@@ -48,7 +49,7 @@ class ArrayAccessTest extends TestCase
      */
     public function it_raises_an_exception_on_failed_json_schema_validation(): void
     {
-        $this->expectException(ArrayAccessFailed::class);
+        $this->expectException(ArrayAccessValidationFailed::class);
         $this->expectExceptionMessage('Json schema validation failed: Error: [minLength], Data pointer: [key1], Error: [type], Data pointer: [key2], Error: [additionalProperties], Data pointer: []');
 
         $data = [
@@ -155,7 +156,8 @@ class ArrayAccessTest extends TestCase
         ];
 
         $access = ArrayAccess::create($testArray);
-        $newAccess = $access->writeAtPath('new-value', 'Foo', 'Bar', 'New');
+        $access = $access->writeAtPath('new-value', 'Foo', 'Bar', 'New');
+        $access = $access->writeAtPath('new-value-2', 'Foo', 'Bar', 'New-2');
 
         static::assertSame(
             [
@@ -163,11 +165,76 @@ class ArrayAccessTest extends TestCase
                     'Bar' => [
                         'Baz' => 'Buz',
                         'New' => 'new-value',
+                        'New-2' => 'new-value-2',
+                    ],
+                ],
+            ],
+            $access->data()
+        );
+    }
+
+    /**
+     * @test
+     */
+    public function it_can_write_value_at_single_path(): void
+    {
+        $access = ArrayAccess::create([]);
+        $newAccess = $access->writeAtPath('new-value', 'Foo');
+
+        static::assertSame('new-value', $newAccess->string('Foo'));
+    }
+
+    /**
+     * @test
+     */
+    public function it_can_write_empty_array(): void
+    {
+        $access = ArrayAccess::create([]);
+        $access = $access->writeAtPath([], '0');
+
+        static::assertSame([], $access->array(0));
+    }
+
+    /**
+     * @test
+     */
+    public function it_can_write_at_path_on_empty_access(): void
+    {
+        $access = ArrayAccess::create([]);
+        $newAccess = $access->writeAtPath('new-value', 'Foo', 'Bar', 'New');
+
+        static::assertSame(
+            [
+                'Foo' => [
+                    'Bar' => [
+                        'New' => 'new-value',
                     ],
                 ],
             ],
             $newAccess->data()
         );
+    }
+
+    /**
+     * @test
+     */
+    public function it_writes_on_zero_index_if_empty_path_provided(): void
+    {
+        $access = ArrayAccess::create([]);
+        $access = $access->writeAtPath('foo');
+
+        static::assertSame(['foo'], $access->data());
+    }
+
+    /**
+     * @test
+     */
+    public function it_writes_null_value_on_zero_index(): void
+    {
+        $access = ArrayAccess::create([]);
+        $access = $access->writeAtPath(null);
+
+        static::assertSame([0 => null], $access->data());
     }
 
     /**
