@@ -63,7 +63,7 @@ class ArrayAccess
         return new self($newArray);
     }
 
-    public function writeAtPath($value, string ...$path): self
+    public function writeAtPath($value, ...$path): self
     {
         $instance = new self($this->data);
 
